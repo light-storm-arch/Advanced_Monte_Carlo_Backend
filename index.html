@@ -4004,13 +4004,13 @@ function Root() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) loadTeamInfo(session.user.id);
+      if (session) loadTeamInfo(session.user.id, true);
       else setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (event === 'SIGNED_IN') {
-        loadTeamInfo(session.user.id);
+        loadTeamInfo(session.user.id, false);
       } else if (event === 'SIGNED_OUT') {
         setTeamId(null);
         setTeamName('');
@@ -4022,7 +4022,7 @@ function Root() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadTeamInfo = async (userId) => {
+  const loadTeamInfo = async (userId, resetView = true) => {
     const { data: membership } = await supabase
       .from('team_members')
       .select('team_id, role, teams(name)')
@@ -4033,7 +4033,7 @@ function Root() {
       setTeamId(membership.team_id);
       setTeamName(membership.teams?.name || 'Team');
       setUserRole(membership.role);
-      setView('dashboard');
+      if (resetView) setView('dashboard');
     } else {
       setTeamId(null);
     }
